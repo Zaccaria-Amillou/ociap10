@@ -4,7 +4,10 @@
 
 azure-functions
 azure-storage-blob
+requests
 pandas
 numpy
-sklearn
+scikit-learn
 surprise
+implicit
+scipy

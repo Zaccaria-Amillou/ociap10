@@ -1,0 +1,40 @@
+# Use the official Python image from the Docker Hub
+FROM python:3.7-slim-buster
+
+# Install necessary utilities and build tools
+RUN apt-get update && \
+    apt-get install -y wget gnupg build-essential
+
+# Add Microsoft package repository for Azure Functions Core Tools
+RUN wget -qO- https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor > microsoft.asc.gpg && \
+    mv microsoft.asc.gpg /etc/apt/trusted.gpg.d/ && \
+    wget -q https://packages.microsoft.com/config/debian/10/prod.list && \
+    mv prod.list /etc/apt/sources.list.d/microsoft-prod.list && \
+    chown root:root /etc/apt/trusted.gpg.d/microsoft.asc.gpg && \
+    chown root:root /etc/apt/sources.list.d/microsoft-prod.list
+
+# Install Azure Functions Core Tools
+RUN apt-get update && \
+    apt-get install -y azure-functions-core-tools-3
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the requirements.txt file and install the dependencies
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy the rest of the code
+COPY . .
+
+# Set .NET Core to run in invariant mode
+ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=true
+
+# Expose the port
+EXPOSE 7071
+
+# Set the Azure Functions port to 7071
+ENV FUNCTIONS_CUSTOMHANDLER_PORT=7071
+
+# Start the function app
+CMD ["func", "start", "--python"]
